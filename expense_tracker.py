@@ -59,6 +59,28 @@ def delete_expenses():
     except ValueError:
         print("❌ Please enter a valid number.\n")
 
+def show_total():
+    if not Expenses:
+        print("📂 No expenses recorded yet!")
+        return 
+    total = sum(exp["Amount"] for exp in Expenses)
+    print(f"\n💰 Total Expenses: {total}")
+    
+    print()
+    
+def show_category():
+    if not Expenses:
+        print("📂 No expenses recorded yet!")
+        return 
+    print("\n Category Summary: ")
+    categories = {}
+    for exp in Expenses:
+        categories.setdefault(exp["Category"], 0)
+        categories[exp["Category"]] += exp["Amount"]
+    for cat, amt in categories.items():
+        print(f"- {cat}: {amt}")
+    print()
+        
 # Main program loop
 def main():
     load_expenses()  # Load data at start
@@ -67,7 +89,9 @@ def main():
         print("1. Add Expenses")
         print("2. View Expenses")
         print("3. Delete Expenses")
-        print("4. Exit")
+        print("4: Show Total Expenses")
+        print("5: Show Category Summary")
+        print("6. Exit")
 
         choice = input("Enter your choice: ").strip()
         if choice == "1":
@@ -77,7 +101,11 @@ def main():
         elif choice == "3":
             delete_expenses()
         elif choice == "4":
-            print("👋 Exiting... Goodbye!")
+            show_total()
+        elif choice == "5":
+            show_category()
+        elif choice == "6":
+            print("Exiting...GoodBye👋")
             break
         else:
             print("❌ Invalid choice, try again.\n")
