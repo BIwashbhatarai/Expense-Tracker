@@ -14,36 +14,38 @@ FILE_NAME = "expenses.json"   # File to save/load expenses
 # -------------------------------
 def load_expenses():
     global Expenses
-    if os.path.exists(FILE_NAME):   # Check if file exists
+    if os.path.exists(FILE_NAME):   # Check if the file exists
         with open(FILE_NAME, "r") as f:
             try:
                 Expenses = json.load(f)   # Load expenses from JSON file
-            except json.JSONDecodeError:  # If file is empty or corrupted
+            except json.JSONDecodeError:  # Handle empty or corrupted file
                 Expenses = []
     else:
-        Expenses = []   # If no file, start with empty list
+        Expenses = []   # If file doesn't exist, start with an empty list
 
 # -------------------------------
 # Save expenses to file
 # -------------------------------
 def save_expenses():
     with open(FILE_NAME, "w") as f:
-        json.dump(Expenses, f, indent=4)  # Save data in JSON format with indentation
+        json.dump(Expenses, f, indent=4)  # Save expenses in JSON format with indentation
 
 # -------------------------------
 # Add a new expense
 # -------------------------------
 def add_expenses():
     try:
-        amount = float(input("Enter amount: "))   # Expense amount
+        # Input details for new expense
+        amount = float(input("Enter amount: "))
         category = input("Enter category (Food, Travel, etc.): ").strip()
         note = input("Enter note: ").strip()
         date_input = input("Enter date (YYYY-MM-DD) or leave blank for today: ")
 
-        if not date_input:   # Default = today's date
+        # Default to today's date if no input
+        if not date_input:
             date_input = datetime.today().strftime("%Y-%m-%d")
 
-        # Store new expense as dictionary
+        # Add new expense as a dictionary
         Expenses.append({
             "Amount": amount,
             "Category": category,
@@ -67,16 +69,16 @@ def view_expenses():
     print("\n--- Expenses List ---")
     print(f"{'#':<4} {'Amount':<10} {'Category':<15} {'Note':<20} {'Date':<12}")
     print("-" * 65)
+    # Display each expense with a serial number
     for i, exp in enumerate(Expenses, start=1):
         print(f"{i:<4} {exp['Amount']:<10.2f} {exp['Category']:<15} {exp['Note']:<20} {exp['Date']:<12}")
     print()
-
 
 # -------------------------------
 # Delete an expense by index
 # -------------------------------
 def delete_expenses():
-    view_expenses()
+    view_expenses()  # Show current expenses
     if not Expenses:
         return
 
@@ -99,10 +101,9 @@ def show_total():
         print("📂 No expenses recorded yet!")
         return 
 
-    total = sum(exp["Amount"] for exp in Expenses)
-    print(f"\n💰 Total Expenses: {total}")
-    print()
-    
+    total = sum(exp["Amount"] for exp in Expenses)  # Sum all amounts
+    print(f"\n💰 Total Expenses: {total}\n")
+
 # -------------------------------
 # Show category-wise summary
 # -------------------------------
@@ -110,16 +111,16 @@ def show_category():
     if not Expenses:
         print("📂 No expenses recorded yet!")
         return 
-    
-    categories = {}
 
+    categories = {}
+    # Calculate total per category
     for exp in Expenses:
         categories.setdefault(exp["Category"], 0)
         categories[exp["Category"]] += exp["Amount"]
     
     print("\n📊 Category Summary: ")
     print(f"{'Category':<20} | {'Total Amount':<12}")
-    print('-' *35)
+    print('-' * 35)
     for cat, amt in categories.items():
         print(f"{cat:<20} | {amt:<12.2f}")
     print()
@@ -134,7 +135,7 @@ def show_monthly_total():
 
     month = input("Enter month (YYYY-MM): ").strip()
     if not month:
-        month = datetime.today().strftime("%Y-%m")
+        month = datetime.today().strftime("%Y-%m")  # Default to current month
 
     total = 0
     for exp in Expenses:
@@ -160,7 +161,7 @@ def edit_expenses():
             exp = Expenses[index - 1]
             print("✏️ Leave blank to keep the old value")
 
-            # Update amount
+            # Update fields if new input is provided
             amount_input = input(f"Amount ({exp['Amount']}): ").strip()
             if amount_input:
                 try:
@@ -168,17 +169,14 @@ def edit_expenses():
                 except ValueError:
                     print("❌ Invalid amount! Keeping old value")
 
-            # Update category
             category_input = input(f"Category ({exp['Category']}): ").strip()
             if category_input:
                 exp['Category'] = category_input
 
-            # Update note
             note_input = input(f"Note ({exp['Note']}): ").strip()
             if note_input:
                 exp['Note'] = note_input
 
-            # Update date
             date_input = input(f"Date ({exp['Date']}): ").strip()
             if date_input:
                 exp['Date'] = date_input
@@ -207,23 +205,23 @@ def search_expenses():
     choice = input("Enter your choice: ").strip()
     results = []
 
-    if choice == '1':   # Search by category
+    if choice == '1':  # Search by category
         cat_input = input("Enter category to search: ").strip().lower()
         for exp in Expenses:
             if cat_input in exp['Category'].lower():
                 results.append(exp)
 
-    elif choice == '2':   # Search by date
+    elif choice == '2':  # Search by date
         date_input = input("Enter date to search (YYYY-MM-DD): ").strip()
         for exp in Expenses:
             if exp['Date'] == date_input:
                 results.append(exp)
 
-    elif choice == '3':   # Search by amount
+    elif choice == '3':  # Search by amount
         try:
             amount_input = float(input("Enter amount to search: ").strip())
             for exp in Expenses:
-                if exp['Amount'] == float(amount_input):
+                if exp['Amount'] == amount_input:
                     results.append(exp)
         except ValueError:
             print("❌ Invalid amount! Please enter a number")
@@ -233,7 +231,7 @@ def search_expenses():
         print("❌ Invalid choice! Choose 1, 2, or 3") 
         return 
 
-    # Show results
+    # Display search results
     if results:
         print("\n--- Search Results ---")
         for i, exp in enumerate(results, start=1):
@@ -241,25 +239,32 @@ def search_expenses():
         print(f"\n✅ {len(results)} expenses found matching your search.\n")
     else:
         print("❌ No matching expenses found.\n")
+
+# -------------------------------
+# Export expenses to CSV
+# -------------------------------
 def export_to_csv():
     if not Expenses:
         print("📂 No expenses recorded yet.\n")
         return
-    filename = input("Enter CSV filename (default: expenses.csv):  ").strip()
+    filename = input("Enter CSV filename (default: expenses.csv): ").strip()
     if not filename:
         filename = "expenses.csv"
     with open(filename, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=['Amount','Category','Note', 'Date'])
+        writer = csv.DictWriter(f, fieldnames=['Amount','Category','Note','Date'])
         writer.writeheader()
         writer.writerows(Expenses)
     print(f"✅ Expenses exported successfully to {filename}")
 
+# -------------------------------
+# Import expenses from CSV
+# -------------------------------
 def import_to_csv():
     filename = input("Enter CSV file name to import: ")
     if not os.path.exists(filename):
         print("❌ File not found.\n")
         return
-    with open(filename,'r')as f:
+    with open(filename,'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             try:
@@ -272,12 +277,15 @@ def import_to_csv():
             except (ValueError, KeyError):
                 print("⚠️ Skipping invalid row in CSV")
     save_expenses()
-    print(f"✅ Expenses imported successfully from {filename}")            
+    print(f"✅ Expenses imported successfully from {filename}")
+
+# -------------------------------
 # Main program loop
 # -------------------------------
 def main():
-    load_expenses()  # Load data at start
+    load_expenses()  # Load existing data
     while True:
+        # Display menu
         print("\n--- Expense Tracker CLI ---")
         print("1. Add Expenses")
         print("2. View Expenses")
@@ -293,6 +301,7 @@ def main():
 
         choice = input("Enter your choice: ").strip()
 
+        # Call appropriate function based on user choice
         if choice == "1":
             add_expenses()
         elif choice == "2":
