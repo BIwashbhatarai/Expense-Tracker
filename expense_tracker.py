@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+import csv
 
 # -------------------------------
 # Global variables
@@ -63,11 +64,13 @@ def view_expenses():
     if not Expenses:
         print("📂 No expenses recorded yet.\n")
         return
-
     print("\n--- Expenses List ---")
+    print(f"{'#':<4} {'Amount':<10} {'Category':<15} {'Note':<20} {'Date':<12}")
+    print("-" * 65)
     for i, exp in enumerate(Expenses, start=1):
-        print(f"{i}. {exp['Amount']} | {exp['Category']} | {exp['Note']} | {exp['Date']}")
+        print(f"{i:<4} {exp['Amount']:<10.2f} {exp['Category']:<15} {exp['Note']:<20} {exp['Date']:<12}")
     print()
+
 
 # -------------------------------
 # Delete an expense by index
@@ -107,16 +110,18 @@ def show_category():
     if not Expenses:
         print("📂 No expenses recorded yet!")
         return 
-
-    print("\n📊 Category Summary: ")
+    
     categories = {}
 
     for exp in Expenses:
         categories.setdefault(exp["Category"], 0)
         categories[exp["Category"]] += exp["Amount"]
-
+    
+    print("\n📊 Category Summary: ")
+    print(f"{'Category':<20} | {'Total Amount':<12}")
+    print('-' *35)
     for cat, amt in categories.items():
-        print(f"- {cat}: {amt:.2f}")
+        print(f"{cat:<20} | {amt:<12.2f}")
     print()
 
 # -------------------------------
@@ -218,7 +223,7 @@ def search_expenses():
         try:
             amount_input = float(input("Enter amount to search: ").strip())
             for exp in Expenses:
-                if exp['Amount'] == amount_input:
+                if exp['Amount'] == float(amount_input):
                     results.append(exp)
         except ValueError:
             print("❌ Invalid amount! Please enter a number")
@@ -236,8 +241,38 @@ def search_expenses():
         print(f"\n✅ {len(results)} expenses found matching your search.\n")
     else:
         print("❌ No matching expenses found.\n")
+def export_to_csv():
+    if not Expenses:
+        print("📂 No expenses recorded yet.\n")
+        return
+    filename = input("Enter CSV filename (default: expenses.csv):  ").strip()
+    if not filename:
+        filename = "expenses.csv"
+    with open(filename, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=['Amount','Category','Note', 'Date'])
+        writer.writeheader()
+        writer.writerows(Expenses)
+    print(f"✅ Expenses exported successfully to {filename}")
 
-# -------------------------------
+def import_to_csv():
+    filename = input("Enter CSV file name to import: ")
+    if not os.path.exists(filename):
+        print("❌ File not found.\n")
+        return
+    with open(filename,'r')as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                Expenses.append({
+                    "Amount": float(row['Amount']),
+                    "Category": row['Category'],
+                    "Note": row['Note'],
+                    'Date': row['Date']
+                })
+            except (ValueError, KeyError):
+                print("⚠️ Skipping invalid row in CSV")
+    save_expenses()
+    print(f"✅ Expenses imported successfully from {filename}")            
 # Main program loop
 # -------------------------------
 def main():
@@ -252,7 +287,9 @@ def main():
         print("6. Show Monthly Total")
         print("7. Edit Expenses")
         print("8. Search Expenses")
-        print("9. Exit")
+        print("9. Export to CSV")
+        print("10. Import to CSV")
+        print("11. Exit")
 
         choice = input("Enter your choice: ").strip()
 
@@ -273,6 +310,10 @@ def main():
         elif choice == "8":
             search_expenses()
         elif choice == "9":
+            export_to_csv()
+        elif choice == "10":
+            import_to_csv()
+        elif choice == "11":
             print("Exiting... Goodbye 👋")
             break
         else:
