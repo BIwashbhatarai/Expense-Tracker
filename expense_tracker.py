@@ -78,7 +78,7 @@ def view_expenses():
 # Delete an expense by index
 # -------------------------------
 def delete_expenses():
-    view_expenses()  # Show current expenses
+    view_expenses()  # Show Current Expenses
     if not Expenses:
         return
 
